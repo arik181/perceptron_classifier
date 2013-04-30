@@ -7,22 +7,21 @@ void main() {
   // Output
   num output = 0;
   
-  // Data
-  Path data_path = new Path(r'bin/optdigits.train');
-  var data_file = new File.fromPath(data_path);
-  List<String> data;
+  // ** Data
+  Path trainingDataPath = new Path(r'bin/optdigits.train');
+  Path testDataPath = new Path(r'bin/optdigits.test');
+  var trainingDataFile = new File.fromPath(trainingDataPath);
+  var testDataFile = new File.fromPath(testDataPath);
   // Read training data file to list of Strings
-  data = data_file.readAsLinesSync();
-  //print(data);
+  List<String> trainingData;
+  trainingData = trainingDataFile.readAsLinesSync();
   
-  // Perceptron classifier
-  pClassifier pc = new pClassifier(data);
+  // ** A Single Perceptron Classifier
+  pClassifier pc = new pClassifier(trainingData, testData);
   // Train the classifier
-  pc.train();
+  pc.train(0,5);
   // Report findings
 //  pc.report();
-  
-  //print("Hello, World!");
 }
 
 /**
@@ -41,64 +40,90 @@ class pClassifier {
   List <int> _classes;
   // Input
   List<String> _data;
-  const int _number_of_inputs  = 64;
-  const int _number_of_weights = 65;
+  List<List<String>> _digitData;
+  const int _numberOfInputs  = 64;
+  const int _numberOfWeights = 65;
   // Output
   double _output = 0.0;
+  List<bool> _output_data;
   // K is the current epoch; 
   // The number of times the classifier has been run.
   // We assume that this number is smaller than the 
-  // maximum size of an int. (Perhaps a bad assumption...)
+  // maximum size of int. (Perhaps a bad assumption...)
   int _k=0;
   // Random seed
   var _rand = new Random();
 
   /**
-   * Constructor:
+   * Constructor -
    * Set initial values for our 
    * Perceptron Classifier
+   * 
+   * Argument - 
+   * inputData - a set of strings representing
+   * a raw optdigits dataset.
    */
   pClassifier(List<String> inputData) {
     // Initial weights
     _weights = new List<double>();
     // Set to random values
     int i=0;
-    for (i=0; i < _number_of_weights; ++i) {
+    for (i=0; i < _numberOfWeights; ++i) {
       // Generates random double to one
       // decimal of precision s.t. 
       // (0 <= d <= 0.9), then adds that
       // value to our list of weights.
       _weights.add(_rand.nextInt(10).toDouble()/10);
     }
-//    print(_weights);
     // Input
     // Get classes from data
-    _classes  = createClasses(inputData); 
+    _classes  = parseClasses(inputData); 
     // Convert input to Json
-    _data   = createFeatures(inputData);
-//    print(_data);
-//    print(_classes);
+    _data     = parseFeatures(inputData);
+    // Output
+    _output_data = new List<bool>();
   }
   
   /** 
    * Output function - 
    * Run the Perceptron to get output "o"
    */
-  run(inputs) {
+  run(List<int> inputs) {
     int i=0;
+    // Implement run formula
     for (i=1; i < inputs.length; ++i) {
       _output = _output + (_weights[i] * inputs[i]) + _weights[0]; 
     }
     ++_k;
   }
-
+  
   /** 
    * Wrapper for output function - 
    * Run the Perceptron to get output "o"
-   * to be used during training
+   * from test data
    */
-  training_run() {
-    var inputData = parse(_data[_k]);
+  testRun(List<String> testData) {
+    // TODO : do this for every digit in the test data
+    // TODO : save outputs to a list
+    var inputData = parse(testData[_k]);
+    List<double> _inputs = inputData[_k.toString()];
+    run(_inputs);
+  }
+  
+  /** 
+   * Wrapper function (for cleaner API)
+   */
+  test() {
+    // TODO : setup test data and pass to testRun()
+  }
+  
+  /** 
+   * Wrapper for output function - 
+   * Run the Perceptron to get output "o"
+   * from training data
+   */
+  trainingRun(List<String> trainingData) {
+    var inputData = parse(trainingData[_k]);
     List<double> _inputs = inputData[_k.toString()];
     run(_inputs);
   }
@@ -107,27 +132,41 @@ class pClassifier {
    * Training function -
    * Train the classifier (one epoch)
    * using gradient descent
+   * 
+   * Arguments -
+   * a - First class to identify
+   * b - Second class to identify
    */
-  train() {
-    training_run(); // Run the perceptron to get a new output value
+  train(int a, int b) {
+    List<String> subsetData = new List<String>();
+    // Create subset of complete data which
+    // includes only the two useful classes 
     int i=0;
-    double delta_w = 0.0; // say that three times fast...
-    var inputData = parse(_data[_k]);
+    for (final cls in _classes) {
+      if ( cls == a || cls == b ) {
+        subsetData.add(_data[i]);
+      }
+      ++i;
+    }
+    // Run the perceptron to get a new output value
+    trainingRun(subsetData); 
+    // Implement training formula
+    i=0;
+    double deltaW = 0.0; // say that three times fast...
+    var inputData = parse(subsetData[_k]);
     List<double> _inputs = inputData[_k.toString()];
     for (i=1; i < _inputs.length; ++i) {
-      delta_w = Ada * (_classes[i] - _output) * _inputs[i];
-      _weights[i] = _weights[i] + delta_w;
+      deltaW = Ada * (_classes[i] - _output) * _inputs[i];
+      _weights[i] = _weights[i] + deltaW;
     }
   }
   
   /**
-   * Report state to the user
+   * parseClasses() -
+   * Create a List of integers containing the
+   * classes of a dataset.
    */
-  report() {
-    
-  }
-  
-  createClasses(List<String> data) {
+  parseClasses(List<String> data) {
     List<int> classes = new List<int>();
     RegExp classDigit = new RegExp(r'\d+$');
     for (final item in data) {
@@ -136,7 +175,16 @@ class pClassifier {
     return classes;
   }
   
-  createFeatures(List<String> data) {
+  /**
+   * parseFeatures() -
+   * Create a list of strings which contains a
+   * Json representation of a dataset of features,
+   * minus digit representing the actual class
+   * 
+   * Arguments -
+   * data - dataset to be parsed
+   */
+  parseFeatures(List<String> data) {
     List<String> json     = new List<String>();
     List<double> features = new List<double>();
     RegExp start      = new RegExp(r'^');      // Start of line
@@ -153,4 +201,12 @@ class pClassifier {
     }
     return json;
   }
+  
+  /**
+   * Report state to the user
+   */
+  report() {
+   // TODO : Print output data list
+  }
+  
 }

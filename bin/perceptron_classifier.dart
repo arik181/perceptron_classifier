@@ -14,7 +14,9 @@ void main() {
   var testDataFile = new File.fromPath(testDataPath);
   // Read training data file to list of Strings
   List<String> trainingData;
+  List<String> testData;
   trainingData = trainingDataFile.readAsLinesSync();
+  testData     = testDataFile.readAsLinesSync();
   
   // ** A Single Perceptron Classifier
   pClassifier pc = new pClassifier(trainingData, testData);
@@ -63,23 +65,20 @@ class pClassifier {
    * inputData - a set of strings representing
    * a raw optdigits dataset.
    */
-  pClassifier(List<String> inputData) {
+  pClassifier(List<String> trainingData, List<String> testData) {
     // Initial weights
     _weights = new List<double>();
     // Set to random values
     int i=0;
+    // ** Generate random weights (0.0..0.9)
     for (i=0; i < _numberOfWeights; ++i) {
-      // Generates random double to one
-      // decimal of precision s.t. 
-      // (0 <= d <= 0.9), then adds that
-      // value to our list of weights.
       _weights.add(_rand.nextInt(10).toDouble()/10);
     }
     // Input
     // Get classes from data
-    _classes  = parseClasses(inputData); 
+    _classes  = parseClasses(trainingData); 
     // Convert input to Json
-    _data     = parseFeatures(inputData);
+    _data     = parseFeatures(trainingData);
     // Output
     _output_data = new List<bool>();
   }

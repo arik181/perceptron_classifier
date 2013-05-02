@@ -3,6 +3,13 @@ import 'dart:io';
 import 'dart:json';
 import 'dart:math';
 
+/**
+ * The essential job of main is as follows:
+ * 1.) create the perceptron classifiers
+ * 2.) train the classifiers over training data subsets
+ * 3.) run the classifiers over test data subsets
+ * 4.) report results
+ */
 void main() {
   // Output
   num output = 0;
@@ -22,6 +29,8 @@ void main() {
   pClassifier pc = new pClassifier(trainingData, testData);
   // Train the classifier
   pc.train(0,5);
+  // Run the classifier on test data
+  // pc.test();
   // Report findings
 //  pc.report();
 }
@@ -34,18 +43,22 @@ class pClassifier {
    * Prepended underscore character  
    * indicates private class variable.
    */
+  // Trained classes
+  int _classA;
+  int _classB;
   // Learning Rate
   const num Ada = 0.2;
   // Weights
   List <double> _weights;
   // Classes
-  List <int> _classes;
+  List <int> _testClasses;
+  List <int> _trainingClasses;
   // Input
-  List<String> _data;
+  List<String> _trainingData;
   List<List<String>> _digitData;
   const int _numberOfInputs  = 64;
   const int _numberOfWeights = 65;
-  // Output
+  // Output from classification test run
   double _output = 0.0;
   List<bool> _output_data;
   // K is the current epoch; 
@@ -53,6 +66,8 @@ class pClassifier {
   // We assume that this number is smaller than the 
   // maximum size of int. (Perhaps a bad assumption...)
   int _k=0;
+  // State
+  bool _hasRun = false;
   // Random seed
   var _rand = new Random();
 
@@ -76,10 +91,11 @@ class pClassifier {
     }
     // Input
     // Get classes from data
-    _classes  = parseClasses(trainingData); 
+    _trainingClasses  = parseClasses(trainingData); 
+    _testClasses      = parseClasses(testData); 
     // Convert input to Json
-    _data     = parseFeatures(trainingData);
-    // Output
+    _trainingData     = parseFeatures(trainingData);
+    // Output from classification test run
     _output_data = new List<bool>();
   }
   
@@ -102,18 +118,34 @@ class pClassifier {
    * from test data
    */
   testRun(List<String> testData) {
-    // TODO : do this for every digit in the test data
-    // TODO : save outputs to a list
-    var inputData = parse(testData[_k]);
-    List<double> _inputs = inputData[_k.toString()];
-    run(_inputs);
+    // TODO : do this for every test in the test data
+    for (final test in testData) {      
+      var inputData = parse(test);
+      List<double> inputs = inputData[_k.toString()];
+      run(inputs);
+    }
+    // TODO : save outputs to a list called _output_data
+    
+    _hasRun = true;
   }
   
   /** 
    * Wrapper function (for cleaner API)
    */
   test() {
-    // TODO : setup test data and pass to testRun()
+    List<String> subsetData = new List<String>();
+    // Create subset of complete data which
+    // includes only the two useful classes 
+    int i=0;
+    for (final cls in _testClasses) {
+      if ( cls == _classA || cls == _classB ) {
+        subsetData.add(_trainingData[i]);
+      }
+      ++i;
+    }
+    // Run the perceptron to get a new output value
+    testRun(subsetData); 
+    // TODO : set up test data and pass to testRun()
   }
   
   /** 
@@ -123,8 +155,8 @@ class pClassifier {
    */
   trainingRun(List<String> trainingData) {
     var inputData = parse(trainingData[_k]);
-    List<double> _inputs = inputData[_k.toString()];
-    run(_inputs);
+    List<double> inputs = inputData[_k.toString()];
+    run(inputs);
   }
   
   /** 
@@ -137,13 +169,18 @@ class pClassifier {
    * b - Second class to identify
    */
   train(int a, int b) {
-    List<String> subsetData = new List<String>();
+    // The perceptron now knows that it is 
+    // trained to identify two specific classes
+    // namely, a and b.
+    _classA = a;
+    _classB = b;
     // Create subset of complete data which
     // includes only the two useful classes 
+    List<String> subsetData = new List<String>();
     int i=0;
-    for (final cls in _classes) {
-      if ( cls == a || cls == b ) {
-        subsetData.add(_data[i]);
+    for (final cls in _trainingClasses) {
+      if ( cls == _classA || cls == _classB ) {
+        subsetData.add(_trainingData[i]);
       }
       ++i;
     }
@@ -155,7 +192,7 @@ class pClassifier {
     var inputData = parse(subsetData[_k]);
     List<double> _inputs = inputData[_k.toString()];
     for (i=1; i < _inputs.length; ++i) {
-      deltaW = Ada * (_classes[i] - _output) * _inputs[i];
+      deltaW = Ada * (_trainingClasses[i] - _output) * _inputs[i];
       _weights[i] = _weights[i] + deltaW;
     }
   }
@@ -202,10 +239,14 @@ class pClassifier {
   }
   
   /**
-   * Report state to the user
+   * Report state to the user after a test run
    */
   report() {
-   // TODO : Print output data list
+    if (_hasRun) {
+      // TODO : Print output data list
+      
+    } else {
+      print('Nothing to report. Please run the classifier before reporting.');
+    }
   }
-  
 }

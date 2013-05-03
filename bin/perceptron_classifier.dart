@@ -11,9 +11,6 @@ import 'dart:math';
  * 4.) report results
  */
 void main() {
-  // Output
-  num output = 0;
-  
   // ** Data
   Path trainingDataPath = new Path(r'bin/optdigits.train');
   Path testDataPath = new Path(r'bin/optdigits.test');
@@ -25,14 +22,54 @@ void main() {
   trainingData = trainingDataFile.readAsLinesSync();
   testData     = testDataFile.readAsLinesSync();
   
-  // ** A Single Perceptron Classifier
-  pClassifier pc = new pClassifier(trainingData, testData);
-  // Train the classifier
-  pc.train(0,5);
-  // Run the classifier on test data
-  // pc.test();
-  // Report findings
-//  pc.report();
+  // ** Create Perceptron Classifiers
+  List<pClassifier> pc = new List<pClassifier>();
+  // Create all 45 Classifier combinations
+  int i,j =0;
+  List<bool> unmarked = new List.filled(10, false);
+  for (i=0; i<10; ++i) {
+    unmarked[i] = true;
+    for (j=1; j<10; ++j) {
+      if (!unmarked[j]) {
+        pc.add(new pClassifier( trainingData, testData, i, j ));
+      }
+    }
+  }
+  
+  // ** Get busy
+  int totalFailures  = 0;
+  int totalSuccesses = 0;
+  int totalFP        = 0;
+  int totalFN        = 0;
+  for (final classifier in pc) {
+    // Train the classifier
+    classifier.train();
+    // Run the classifier on test data
+    classifier.test();
+    // Report findings
+    //classifier.report();        
+    // Get stats
+    totalFailures  += classifier.failures;
+    totalSuccesses += classifier.successes;
+    totalFP        += classifier.FP;
+    totalFN        += classifier.FN;
+  }
+  finalReport(totalFailures, totalSuccesses, totalFP, totalFN);
+}
+
+/** 
+ * Main reporting function
+ */
+finalReport(int failures, int successes, int FP, int FN) {
+  print("----------------------------------");
+  print("Total successes       : " + successes.toString());
+  print("Total failures        : " + failures.toString());
+  print("Total False Positives : " + FP.toString());
+  print("Total False Negatives : " + FN.toString());
+  print("Total True Positives  : ");
+  print("Total True Negatives  : ");
+  print("----------------------------------");
+
 }
 
 /**
@@ -51,16 +88,18 @@ class pClassifier {
   // Weights
   List <double> _weights;
   // Classes
-  List <int> _testClasses;
-  List <int> _trainingClasses;
+  List<int> _testClasses;
+  List<int> _trainingClasses;
+  List<int> _testSubsetClasses;
   // Input
   List<String> _trainingData;
+  List<String> _testData;
   List<List<String>> _digitData;
   const int _numberOfInputs  = 64;
   const int _numberOfWeights = 65;
   // Output from classification test run
   double _output = 0.0;
-  List<bool> _output_data;
+  List<int> _output_data;
   // K is the current epoch; 
   // The number of times the classifier has been run.
   // We assume that this number is smaller than the 
@@ -68,6 +107,10 @@ class pClassifier {
   int _k=0;
   // State
   bool _hasRun = false;
+  int  _successes = 0;
+  int  _failures  = 0;
+  int  _FP        = 0;
+  int  _FN        = 0;
   // Random seed
   var _rand = new Random();
 
@@ -80,36 +123,67 @@ class pClassifier {
    * inputData - a set of strings representing
    * a raw optdigits dataset.
    */
-  pClassifier(List<String> trainingData, List<String> testData) {
+  pClassifier(List<String> trainingData, 
+              List<String> testData,
+              int a, 
+              int b) {
+    // Classes to train for
+    _classA = a;
+    _classB = b;
     // Initial weights
     _weights = new List<double>();
     // Set to random values
-    int i=0;
     // ** Generate random weights (0.0..0.9)
+    int i=0;
+    int  sign;
     for (i=0; i < _numberOfWeights; ++i) {
-      _weights.add(_rand.nextInt(10).toDouble()/10);
+      if (_rand.nextBool()) {
+        sign = -1;
+      } else {
+        sign = 1;
+      }
+      _weights.add(sign * (_rand.nextInt(10).toDouble()/10));
     }
+
     // Input
     // Get classes from data
-    _trainingClasses  = parseClasses(trainingData); 
-    _testClasses      = parseClasses(testData); 
+    _trainingClasses   = parseClasses(trainingData); 
+    _testClasses       = parseClasses(testData); 
     // Convert input to Json
-    _trainingData     = parseFeatures(trainingData);
+    _trainingData      = parseFeatures(trainingData);
+    _testData          = parseFeatures(testData);
+    _testSubsetClasses = new List<int>();
     // Output from classification test run
-    _output_data = new List<bool>();
+    _output_data       = new List<int>();
   }
+  
+  /** 
+   * Getters/Setters
+   */
+  int get failures  => _failures;
+  int get successes => _successes;
+  int get FP        => _FP;
+  int get FN        => _FN;
   
   /** 
    * Output function - 
    * Run the Perceptron to get output "o"
+   * Implements the primary "run" algorithm
    */
   run(List<int> inputs) {
     int i=0;
     // Implement run formula
+    _output = _weights[0];
     for (i=1; i < inputs.length; ++i) {
-      _output = _output + (_weights[i] * inputs[i]) + _weights[0]; 
+      //print("" + _weights[i].toString() + " " + inputs[i].toString());
+      _output += (_weights[i] * inputs[i]); 
     }
-    ++_k;
+    // Signum
+    if (_output >= 0){
+      _output = 1.0;
+    } else {
+      _output = -1.0;
+    }
   }
   
   /** 
@@ -118,34 +192,42 @@ class pClassifier {
    * from test data
    */
   testRun(List<String> testData) {
-    // TODO : do this for every test in the test data
+    int i=0;
     for (final test in testData) {      
       var inputData = parse(test);
-      List<double> inputs = inputData[_k.toString()];
+      // TODO : This line is pretty weak. Figure out a better way to
+      // get one set of values from a hashmap in Dart. Or refactor.
+      List<double> inputs = inputData[inputData.keys.single.toString()];
       run(inputs);
+      if (_output == -1.0) {
+        _output_data.add(_classB);
+      } else {
+        _output_data.add(_classA);
+      }
+      ++i;
     }
-    // TODO : save outputs to a list called _output_data
-    
     _hasRun = true;
+    tabulate();
   }
   
   /** 
-   * Wrapper function (for cleaner API)
+   * Marshall data for testRun()
    */
   test() {
     List<String> subsetData = new List<String>();
     // Create subset of complete data which
-    // includes only the two useful classes 
+    // includes only the two useful classes
     int i=0;
     for (final cls in _testClasses) {
       if ( cls == _classA || cls == _classB ) {
-        subsetData.add(_trainingData[i]);
+        subsetData.add(_testData[i]);
+        _testSubsetClasses.add(cls);
       }
       ++i;
     }
-    // Run the perceptron to get a new output value
+    // Run the perceptron to get a new set of 
+    // output values for the test data
     testRun(subsetData); 
-    // TODO : set up test data and pass to testRun()
   }
   
   /** 
@@ -155,45 +237,60 @@ class pClassifier {
    */
   trainingRun(List<String> trainingData) {
     var inputData = parse(trainingData[_k]);
-    List<double> inputs = inputData[_k.toString()];
+    List<double> inputs = inputData[inputData.keys.single.toString()];
     run(inputs);
   }
   
   /** 
    * Training function -
    * Train the classifier (one epoch)
-   * using gradient descent
-   * 
-   * Arguments -
-   * a - First class to identify
-   * b - Second class to identify
    */
-  train(int a, int b) {
-    // The perceptron now knows that it is 
-    // trained to identify two specific classes
-    // namely, a and b.
-    _classA = a;
-    _classB = b;
+  train() {
     // Create subset of complete data which
     // includes only the two useful classes 
-    List<String> subsetData = new List<String>();
+    List<String> subsetData  = new List<String>();
+    List<int>    subsetClass = new List<int>();
+    List<int>    subsetT     = new List<int>();
     int i=0;
     for (final cls in _trainingClasses) {
       if ( cls == _classA || cls == _classB ) {
         subsetData.add(_trainingData[i]);
+        subsetClass.add(cls);
+        if (cls == _classA) {
+          subsetT.add(1);
+        } else {
+          subsetT.add(-1);
+        }
       }
       ++i;
     }
-    // Run the perceptron to get a new output value
-    trainingRun(subsetData); 
-    // Implement training formula
-    i=0;
-    double deltaW = 0.0; // say that three times fast...
-    var inputData = parse(subsetData[_k]);
-    List<double> _inputs = inputData[_k.toString()];
-    for (i=1; i < _inputs.length; ++i) {
-      deltaW = Ada * (_trainingClasses[i] - _output) * _inputs[i];
-      _weights[i] = _weights[i] + deltaW;
+    // Train, using Stochastic Gradient Descent
+    int n=0;
+    const maxRuns = 1;
+    for (n=0;n<maxRuns;++n) {
+      // Iterate over each training case
+      _k = 0;
+      int currentSuccess = 0;
+      // Run the perceptron to get a new output value
+      for (final key in subsetData) {        
+        // Implement training formula
+        double deltaW = 0.0; // say that three times fast...
+        var inputData = parse(subsetData[_k]);
+        // TODO : This line is pretty weak. Figure out a better way to
+        // get one set of values from a hashmap in Dart. Or refactor.
+        List<double> _inputs = inputData[inputData.keys.single.toString()];
+        i=0;
+        for (i=0; i < _inputs.length; ++i) {
+          //print("Ada : " + Ada.toString() + " subsetT[i] : " + subsetT[i].toString() + " _output : " + _output.toString() + " _inputs[i] : " + _inputs[i].toString());
+          deltaW = ((subsetT[_k] - _output) * _inputs[i]);
+          deltaW *= Ada;
+          _weights[i] = _weights[i] + deltaW;
+        }
+        
+        _k++;
+        // Record statistics for posterity
+        tabulate();
+      }
     }
   }
   
@@ -239,12 +336,47 @@ class pClassifier {
   }
   
   /**
+   * Tabulate statistics for use in training
+   * as well as in reporting
+   */
+  tabulate() {
+    if (_hasRun) {
+      int i=0;
+      _successes =0;
+      _failures  =0;
+      _FP = 0;
+      _FN = 0;
+      for (final cls in _testSubsetClasses) {
+        //print(cls.toString() + "          " + _output_data[i].toString());
+        if (cls == _output_data[i]) {
+          ++_successes;
+        } else {
+          ++_failures;
+          if (cls == _classA) {
+            ++_FP;
+          } else {
+            ++_FN;
+          }
+        }
+        ++i;
+      }
+    }
+  }
+  
+  /**
    * Report state to the user after a test run
    */
   report() {
     if (_hasRun) {
-      // TODO : Print output data list
-      
+//      tabulate();
+      int i=0;
+      print("-----------------");
+      print("( " + _classA.toString() + ", " + _classB.toString() + " )");
+      print("Successes       : " + _successes.toString());
+      print("Failures        : " + _failures.toString());
+      print("False Positives : " + _FP.toString());
+      print("False Negatives : " + _FN.toString());
+      //print(_weights);
     } else {
       print('Nothing to report. Please run the classifier before reporting.');
     }

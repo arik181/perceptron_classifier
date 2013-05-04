@@ -11,6 +11,9 @@ import 'dart:math';
  * 4.) report results
  */
 void main() {
+  // Start
+  print("start");
+  print("reading files");
   // ** Data
   Path trainingDataPath = new Path(r'bin/optdigits.train');
   Path testDataPath = new Path(r'bin/optdigits.test');
@@ -22,6 +25,7 @@ void main() {
   trainingData = trainingDataFile.readAsLinesSync();
   testData     = testDataFile.readAsLinesSync();
   
+  print("creating perceptron classifiers");
   // ** Create Perceptron Classifiers
   List<pClassifier> pc = new List<pClassifier>();
   // Create all 45 Classifier combinations
@@ -41,9 +45,15 @@ void main() {
   int totalSuccesses = 0;
   int totalFP        = 0;
   int totalFN        = 0;
+  int totalTP        = 0;
+  int totalTN        = 0;
+  print("training classifiers");
   for (final classifier in pc) {
     // Train the classifier
     classifier.train();
+  }
+  print("running classifiers");
+  for (final classifier in pc) {
     // Run the classifier on test data
     classifier.test();
     // Report findings
@@ -53,21 +63,32 @@ void main() {
     totalSuccesses += classifier.successes;
     totalFP        += classifier.FP;
     totalFN        += classifier.FN;
+    totalTP        += classifier.TP;
+    totalTN        += classifier.TN;
   }
-  finalReport(totalFailures, totalSuccesses, totalFP, totalFN);
+  
+  print("reporting");
+  finalReport(totalFailures, 
+              totalSuccesses, 
+              totalFP, 
+              totalFN, 
+              totalTP, 
+              totalTN);
 }
 
 /** 
  * Main reporting function
  */
-finalReport(int failures, int successes, int FP, int FN) {
+finalReport(int failures, int successes, int FP, int FN, int TP, int TN) {
+  double precision = TP / (TP + FP);
+  double recall    = TP / (TP + FN);
+  double accuracy  = 
   print("----------------------------------");
   print("Total successes       : " + successes.toString());
   print("Total failures        : " + failures.toString());
-  print("Total False Positives : " + FP.toString());
-  print("Total False Negatives : " + FN.toString());
-  print("Total True Positives  : ");
-  print("Total True Negatives  : ");
+  print("Precision             : " + precision.toStringAsPrecision(2) + "%");  
+  print("Recall                : " + recall.toStringAsPrecision(2) + "%");
+  print("Accuracy              : " + (1.0 - (failures / successes)).toStringAsPrecision(2) + "%");
   print("----------------------------------");
 
 }
@@ -111,6 +132,8 @@ class pClassifier {
   int  _failures  = 0;
   int  _FP        = 0;
   int  _FN        = 0;
+  int  _TP        = 0;
+  int  _TN        = 0;
   // Random seed
   var _rand = new Random();
 
@@ -164,6 +187,8 @@ class pClassifier {
   int get successes => _successes;
   int get FP        => _FP;
   int get FN        => _FN;
+  int get TP        => _TP;
+  int get TN        => _TN;
   
   /** 
    * Output function - 
@@ -346,10 +371,17 @@ class pClassifier {
       _failures  =0;
       _FP = 0;
       _FN = 0;
+      _TP = 0;
+      _TN = 0;
       for (final cls in _testSubsetClasses) {
         //print(cls.toString() + "          " + _output_data[i].toString());
         if (cls == _output_data[i]) {
           ++_successes;
+          if (cls == _classA) {
+            ++_TP;
+          } else {
+            ++_TN;
+          }
         } else {
           ++_failures;
           if (cls == _classA) {
@@ -368,7 +400,6 @@ class pClassifier {
    */
   report() {
     if (_hasRun) {
-//      tabulate();
       int i=0;
       print("-----------------");
       print("( " + _classA.toString() + ", " + _classB.toString() + " )");

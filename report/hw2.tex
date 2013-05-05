@@ -1,0 +1,2472 @@
+\documentclass[titlepage,11pt]{article}
+\usepackage{url} 
+\usepackage{fullpage} 
+
+\title{Homework 2: Perceptron Learning}
+\author{Devin Quirozoliver\\arik182@cs.pdx.edu, 904032321}
+
+\begin{document}
+\maketitle
+
+\section*{} {
+    \hspace{2pt} The following is an analysis of the results of using a perceptron classifier written in google Dart on the optdigits dataset located at http://ftp.ics.uci.edu/pub/machine-learning-databases/optdigits/. 
+}
+
+\section[1]{Setup} {
+    \hspace{2pt} The source code for this program was written in Dart, and can be found on my github account at https://github.com/arik181/perceptron\_classifier. In order to run this experiment, you will have to have the latest version of Google Dart installed (Release M4 or above).\\
+    The simplest way to run the experiment is as follows:
+    \begin{enumerate} 
+        \item Download and install the Dart Editor at http://www.dartlang.org/tools for Windows or Linux.
+        \item Retrieve the source code from https://github.com/arik181/perceptron\_classifier
+        \item In the Dart Editor, go to file $\rightarrow$ open existing folder (or type Ctrl-O)
+        \item Navigate to the source directory
+        \item Click the Run button (or type Ctrl-R)
+    \end{enumerate} 
+    The output from the classifier will appear in the console window.
+}
+
+\section[2]{Overview} {
+    \textbf{Experiment 1}\\
+        \begin{tabular}{l|l}
+        \textbf{Training Statistics}&\\
+        \hline
+        \textbf{Learning rate}&         0.2\\
+        \textbf{Training runs}&         20\\
+        \textbf{Total successes}&       8520\\
+        \textbf{Total failures}&        480\\
+        \textbf{Precision}&             98\%\\
+        \textbf{Recall}&                92\%\\
+        \textbf{Accuracy}&              94\%\\
+        \end{tabular}
+        \hspace{5pt}
+        \begin{tabular}{l|l}
+        \textbf{Test Statistics}&\\
+        \hline
+        \textbf{Learning rate}&         0.2\\
+        \textbf{Training runs}&         20\\
+        \textbf{Total successes}&       16387\\
+        \textbf{Total failures}&        1019\\
+        \textbf{Precision}&             97\%\\
+        \textbf{Recall}&                92\%\\
+        \textbf{Accuracy}&              94\%\\
+        \end{tabular}\\
+        \vspace{2pt}\\
+        \begin{tabular}{|l|llllllllll|}
+        \hline
+        &\multicolumn{10}{c|}{\textbf{Training Confusion Matrix}}\\
+        \hline
+        &     0&   1&   2&   3&   4&   5&   6&   7&   8&   9\\
+        \hline
+        0&    X&   8&   4&   0&   2&   0&   6&   0&   0&   0\\
+        1&    0&   X&   6&   0&   0&   0&   4&   0&   0&   0\\
+        2&    0&  16&   X&   0&   0&   0&   0&   4&   0&   6\\
+        3&    0& 122&  28&   X&   2&   4&   2&  34&  12&  28\\
+        4&    0&  66&   0&   0&   X&   0&   6&  16&   2&   4\\
+        5&    4&  82&  20&   6&   0&   X&   4&  12&   4&  24\\
+        6&    0&   2&   0&   0&   0&   0&   X&   0&   0&   0\\
+        7&    0&   4&   0&   0&   0&   0&   0&   X&   0&   0\\
+        8&    0& 152&  18&   0&  10&   2&  30&  32&   X&  16\\
+        9&    0& 110&   4&   0&   8&   2&   0&  30&   2&   X\\
+        \hline
+        \end{tabular}
+        \hspace{5pt}
+        \begin{tabular}{|l|llllllllll|}
+        \hline
+        &\multicolumn{10}{c|}{\textbf{Test Confusion Matrix}}\\
+        \hline
+        &     0&   1&   2&   3&   4&   5&   6&   7&   8&   9\\
+        \hline
+        0&    X&  14&   4&   0&   5&   0&  12&   1&   1&   2\\
+        1&    0&   X&   6&   0&   0&   0&   7&   2&   0&   0\\
+        2&    0&  27&   X&   0&   0&   0&   1&   8&   1&   7\\
+        3&    0& 182&  36&   X&   2&   4&   2&  55&  16&  39\\
+        4&    0& 108&   6&   2&   X&   6&  10&  38&  12&  12\\
+        5&    4& 129&  26&   8&   1&   X&   9&  26&   7&  34\\
+        6&    0&   4&   1&   0&   0&   0&   X&   0&   0&   0\\
+        7&    0&   4&   0&   0&   0&   0&   0&   X&   0&   0\\
+        8&    0& 226&  27&   1&  12&   4&  37&  58&   X&  19\\
+        9&    0& 155&   6&   1&  11&   3&   0&  53&   5&   X\\
+        \hline
+        \end{tabular}
+    \textbf{Experiment 2}\\
+        \begin{tabular}{l|l}
+        \textbf{Training Statistics}&\\
+        \hline
+        \textbf{Learning rate}&         0.8\\
+        \textbf{Training runs}&         20\\
+        \textbf{Total successes}&       8520\\
+        \textbf{Total failures}&        480\\
+        \textbf{Precision}&             98\%\\
+        \textbf{Recall}&                92\%\\
+        \textbf{Accuracy}&              94\%\\
+        \end{tabular}
+        \begin{tabular}{l|l}
+        \textbf{Test Statistics}&\\
+        \hline
+        \textbf{Learning rate}&         0.8\\
+        \textbf{Training runs}&         20\\
+        \textbf{Total successes}&       16387\\
+        \textbf{Total failures}&        1019\\
+        \textbf{Precision}&             97\%\\
+        \textbf{Recall}&                92\%\\
+        \textbf{Accuracy}&              94\%\\
+        \end{tabular}\\
+        \vspace{2pt}\\
+        \begin{tabular}{|l|llllllllll|}
+        \hline
+        &\multicolumn{10}{c|}{\textbf{Training Confusion Matrix}}\\
+        \hline
+        &     0&   1&   2&   3&   4&   5&   6&   7&   8&   9\\
+        \hline
+        0&    X&   8&   4&   0&   2&   0&   6&   0&   0&   0\\
+        1&    0&   X&   6&   0&   0&   0&   4&   0&   0&   0\\
+        2&    0&  16&   X&   0&   0&   0&   0&   4&   0&   6\\
+        3&    0& 122&  28&   X&   2&   4&   2&  34&  12&  28\\
+        4&    0&  66&   0&   0&   X&   0&   6&  16&   2&   4\\
+        5&    4&  82&  20&   6&   0&   X&   4&  12&   4&  24\\
+        6&    0&   2&   0&   0&   0&   0&   X&   0&   0&   0\\
+        7&    0&   4&   0&   0&   0&   0&   0&   X&   0&   0\\
+        8&    0& 152&  18&   0&  10&   2&  30&  32&   X&  16\\
+        9&    0& 110&   4&   0&   8&   2&   0&  30&   2&   X\\
+        \hline
+        \end{tabular}
+        \hspace{5pt}
+        \begin{tabular}{|l|llllllllll|}
+        \hline
+        &\multicolumn{10}{c|}{\textbf{Test Confusion Matrix}}\\
+        \hline
+        &     0&   1&   2&   3&   4&   5&   6&   7&   8&   9\\
+        \hline
+        0&    X&  14&   4&   0&   5&   0&  12&   1&   1&   2\\
+        1&    0&   X&   6&   0&   0&   0&   7&   2&   0&   0\\
+        2&    0&  27&   X&   0&   0&   0&   1&   8&   1&   7\\
+        3&    0& 182&  36&   X&   2&   4&   2&  55&  16&  39\\
+        4&    0& 108&   6&   2&   X&   6&  10&  38&  12&  12\\
+        5&    4& 129&  26&   8&   1&   X&   9&  26&   7&  34\\
+        6&    0&   4&   1&   0&   0&   0&   X&   0&   0&   0\\
+        7&    0&   4&   0&   0&   0&   0&   0&   X&   0&   0\\
+        8&    0& 226&  27&   1&  12&   4&  37&  58&   X&  19\\
+        9&    0& 155&   6&   1&  11&   3&   0&  53&   5&   X\\
+        \hline
+        \end{tabular}\\
+    \vspace{2pt}\\
+    \textbf{Experiment 3}\\
+        \begin{tabular}{l|l}
+        \textbf{Training Statistics}&\\
+        \hline
+        \textbf{Learning rate}&         0.05\\
+        \textbf{Training runs}&         20\\
+        \textbf{Total successes}&       8519\\
+        \textbf{Total failures}&        481\\
+        \textbf{Precision}&             98\%\\
+        \textbf{Recall}&                92\%\\
+        \textbf{Accuracy}&              94\%\\
+        \end{tabular}
+        \begin{tabular}{l|l}
+        \textbf{Test Statistics}&\\
+        \hline
+        \textbf{Learning rate}&         0.05\\
+        \textbf{Training runs}&         20\\
+        \textbf{Total successes}&       16385\\
+        \textbf{Total failures}&        1021\\
+        \textbf{Precision}&             97\%\\
+        \textbf{Recall}&                92\%\\
+        \textbf{Accuracy}&              94\%\\
+        \end{tabular}\\
+        \vspace{2pt}\\
+        \begin{tabular}{|l|llllllllll|}
+        \hline
+        &\multicolumn{10}{c|}{\textbf{Training Confusion Matrix}}\\
+        \hline
+        &     0&   1&   2&   3&   4&   5&   6&   7&   8&   9\\
+        \hline
+        0&    X&   8&   4&   0&   2&   0&   6&   0&   0&   0\\
+        1&    0&   X&   6&   0&   0&   0&   4&   0&   0&   0\\
+        2&    0&  16&   X&   0&   0&   0&   0&   4&   0&   6\\
+        3&    0& 122&  28&   X&   2&   4&   2&  34&  12&  28\\
+        4&    0&  66&   0&   0&   X&   0&   6&  16&   2&   4\\
+        5&    4&  82&  20&   6&   0&   X&   4&  12&   4&  24\\
+        6&    0&   2&   0&   0&   0&   0&   X&   0&   0&   0\\
+        7&    0&   4&   0&   0&   0&   0&   0&   X&   0&   0\\
+        8&    0& 152&  18&   0&  10&   2&  30&  32&   X&  16\\
+        9&    0& 112&   4&   0&   8&   2&   0&  30&   2&   X\\
+        \hline
+        \end{tabular}
+        \begin{tabular}{|l|llllllllll|}
+        \hline
+        &\multicolumn{10}{c|}{\textbf{Test Confusion Matrix}}\\
+        \hline
+        &     0&   1&   2&   3&   4&   5&   6&   7&   8&   9\\
+        \hline
+        0&    X&  14&   4&   0&   5&   0&  12&   1&   1&   2\\
+        1&    0&   X&   6&   0&   0&   0&   7&   2&   0&   0\\
+        2&    0&  27&   X&   0&   0&   0&   1&   8&   1&   7\\
+        3&    0& 182&  36&   X&   2&   4&   2&  55&  16&  39\\
+        4&    0& 108&   6&   2&   X&   6&  10&  38&  12&  12\\
+        5&    4& 129&  26&   8&   1&   X&   9&  26&   7&  34\\
+        6&    0&   4&   1&   0&   0&   0&   X&   0&   0&   0\\
+        7&    0&   4&   0&   0&   0&   0&   0&   X&   0&   0\\
+        8&    0& 227&  27&   1&  12&   4&  37&  58&   X&  19\\
+        9&    0& 157&   6&   1&  11&   3&   0&  53&   5&   X\\
+        \hline
+        \end{tabular}
+}
+
+\section[3]{Summary} {
+    \hspace{2pt}  The three experiments produced very similar results. The first experiment produced identical results from the second experiment. I believe that this is due to the fact that I used the same number of training epochs across all perceptrons for all three experiments. It is possible that if I had allowed the experiments to run for much longer periods of time, there would be more of a divergence. There is some variation in the confusion matrix for the third experiment, with a slightly higher number of false classifications. There is also variation between the test runs and the training runs in each experiment, with the test runs containing a slightly higher failure rate overall, as expected.\\\\
+    \hspace{2pt}  The number 1 was the most commonly misclassified digit by a considerable margin, having the highest number of false negatives, but very few false positives, it seems to have been mistaken for other numbers quite regularly, and these errors accounted for 1075 of the 1377 false negatives over the test data in experiment two, or approximately 78\%. The other experiments resulted in very similar classification errors on this digit.
+}
+
+\section[4]{Classifier Output - Experiment 1} {
+\begin{verbatim}
+start
+reading files
+creating perceptron classifiers
+training classifiers
+reporting training data
+--------------------------------------------
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 8520
+Total failures        : 480
+Precision             : 0.98%
+Recall                : 0.92%
+Accuracy              : 0.94%
+____________________________________________
+      0   1   2   3   4   5   6   7   8   9
+____________________________________________
+0 |   X   8   4   0   2   0   6   0   0   0
+
+1 |   0   X   6   0   0   0   4   0   0   0
+
+2 |   0  16   X   0   0   0   0   4   0   6
+
+3 |   0 122  28   X   2   4   2  34  12  28
+
+4 |   0  66   0   0   X   0   6  16   2   4
+
+5 |   4  82  20   6   0   X   4  12   4  24
+
+6 |   0   2   0   0   0   0   X   0   0   0
+
+7 |   0   4   0   0   0   0   0   X   0   0
+
+8 |   0 152  18   0  10   2  30  32   X  16
+
+9 |   0 110   4   0   8   2   0  30   2   X
+
+--------------------------------------------
+running classifiers
+--------------------------------------------
+( 0, 1 )
+Successes       : 180
+Failures        : 6
+False Positives : 6
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 180
+Total failures        : 6
+Precision             : 0.94%
+Recall                : 1.0%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 0, 2 )
+Successes       : 189
+Failures        : 0
+False Positives : 0
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 189
+Total failures        : 0
+Precision             : 1.0%
+Recall                : 1.0%
+Accuracy              : 1.0%
+--------------------------------------------
+--------------------------------------------
+( 0, 3 )
+Successes       : 200
+Failures        : 0
+False Positives : 0
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 200
+Total failures        : 0
+Precision             : 1.0%
+Recall                : 1.0%
+Accuracy              : 1.0%
+--------------------------------------------
+--------------------------------------------
+( 0, 4 )
+Successes       : 176
+Failures        : 3
+False Positives : 3
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 176
+Total failures        : 3
+Precision             : 0.97%
+Recall                : 1.0%
+Accuracy              : 0.98%
+--------------------------------------------
+--------------------------------------------
+( 0, 5 )
+Successes       : 183
+Failures        : 0
+False Positives : 0
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 183
+Total failures        : 0
+Precision             : 1.0%
+Recall                : 1.0%
+Accuracy              : 1.0%
+--------------------------------------------
+--------------------------------------------
+( 0, 6 )
+Successes       : 180
+Failures        : 6
+False Positives : 6
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 180
+Total failures        : 6
+Precision             : 0.94%
+Recall                : 1.0%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 0, 7 )
+Successes       : 188
+Failures        : 1
+False Positives : 1
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 188
+Total failures        : 1
+Precision             : 0.99%
+Recall                : 1.0%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 0, 8 )
+Successes       : 182
+Failures        : 1
+False Positives : 1
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 182
+Total failures        : 1
+Precision             : 0.99%
+Recall                : 1.0%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 0, 9 )
+Successes       : 197
+Failures        : 2
+False Positives : 2
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 197
+Total failures        : 2
+Precision             : 0.98%
+Recall                : 1.0%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 1, 2 )
+Successes       : 174
+Failures        : 11
+False Positives : 0
+False Negatives : 11
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 174
+Total failures        : 11
+Precision             : 1.0%
+Recall                : 0.89%
+Accuracy              : 0.94%
+--------------------------------------------
+--------------------------------------------
+( 1, 3 )
+Successes       : 136
+Failures        : 60
+False Positives : 0
+False Negatives : 60
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 136
+Total failures        : 60
+Precision             : 1.0%
+Recall                : 0.60%
+Accuracy              : 0.56%
+--------------------------------------------
+--------------------------------------------
+( 1, 4 )
+Successes       : 133
+Failures        : 42
+False Positives : 0
+False Negatives : 42
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 133
+Total failures        : 42
+Precision             : 1.0%
+Recall                : 0.68%
+Accuracy              : 0.68%
+--------------------------------------------
+--------------------------------------------
+( 1, 5 )
+Successes       : 132
+Failures        : 47
+False Positives : 0
+False Negatives : 47
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 132
+Total failures        : 47
+Precision             : 1.0%
+Recall                : 0.66%
+Accuracy              : 0.64%
+--------------------------------------------
+--------------------------------------------
+( 1, 6 )
+Successes       : 177
+Failures        : 5
+False Positives : 3
+False Negatives : 2
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 177
+Total failures        : 5
+Precision             : 0.97%
+Recall                : 0.98%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 1, 7 )
+Successes       : 183
+Failures        : 2
+False Positives : 2
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 183
+Total failures        : 2
+Precision             : 0.98%
+Recall                : 1.0%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 1, 8 )
+Successes       : 105
+Failures        : 74
+False Positives : 0
+False Negatives : 74
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 105
+Total failures        : 74
+Precision             : 1.0%
+Recall                : 0.55%
+Accuracy              : 0.30%
+--------------------------------------------
+--------------------------------------------
+( 1, 9 )
+Successes       : 150
+Failures        : 45
+False Positives : 0
+False Negatives : 45
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 150
+Total failures        : 45
+Precision             : 1.0%
+Recall                : 0.67%
+Accuracy              : 0.70%
+--------------------------------------------
+--------------------------------------------
+( 2, 3 )
+Successes       : 191
+Failures        : 8
+False Positives : 0
+False Negatives : 8
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 191
+Total failures        : 8
+Precision             : 1.0%
+Recall                : 0.92%
+Accuracy              : 0.96%
+--------------------------------------------
+--------------------------------------------
+( 2, 4 )
+Successes       : 172
+Failures        : 6
+False Positives : 0
+False Negatives : 6
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 172
+Total failures        : 6
+Precision             : 1.0%
+Recall                : 0.94%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 2, 5 )
+Successes       : 176
+Failures        : 6
+False Positives : 0
+False Negatives : 6
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 176
+Total failures        : 6
+Precision             : 1.0%
+Recall                : 0.94%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 2, 6 )
+Successes       : 183
+Failures        : 2
+False Positives : 1
+False Negatives : 1
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 183
+Total failures        : 2
+Precision             : 0.99%
+Recall                : 0.99%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 2, 7 )
+Successes       : 184
+Failures        : 4
+False Positives : 4
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 184
+Total failures        : 4
+Precision             : 0.96%
+Recall                : 1.0%
+Accuracy              : 0.98%
+--------------------------------------------
+--------------------------------------------
+( 2, 8 )
+Successes       : 172
+Failures        : 10
+False Positives : 1
+False Negatives : 9
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 172
+Total failures        : 10
+Precision             : 0.99%
+Recall                : 0.91%
+Accuracy              : 0.94%
+--------------------------------------------
+--------------------------------------------
+( 2, 9 )
+Successes       : 195
+Failures        : 3
+False Positives : 1
+False Negatives : 2
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 195
+Total failures        : 3
+Precision             : 0.99%
+Recall                : 0.98%
+Accuracy              : 0.98%
+--------------------------------------------
+--------------------------------------------
+( 3, 4 )
+Successes       : 187
+Failures        : 2
+False Positives : 0
+False Negatives : 2
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 187
+Total failures        : 2
+Precision             : 1.0%
+Recall                : 0.98%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 3, 5 )
+Successes       : 191
+Failures        : 2
+False Positives : 0
+False Negatives : 2
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 191
+Total failures        : 2
+Precision             : 1.0%
+Recall                : 0.98%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 3, 6 )
+Successes       : 196
+Failures        : 0
+False Positives : 0
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 196
+Total failures        : 0
+Precision             : 1.0%
+Recall                : 1.0%
+Accuracy              : 1.0%
+--------------------------------------------
+--------------------------------------------
+( 3, 7 )
+Successes       : 178
+Failures        : 21
+False Positives : 21
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 178
+Total failures        : 21
+Precision             : 0.80%
+Recall                : 1.0%
+Accuracy              : 0.88%
+--------------------------------------------
+--------------------------------------------
+( 3, 8 )
+Successes       : 188
+Failures        : 5
+False Positives : 4
+False Negatives : 1
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 188
+Total failures        : 5
+Precision             : 0.96%
+Recall                : 0.99%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 3, 9 )
+Successes       : 197
+Failures        : 12
+False Positives : 11
+False Negatives : 1
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 197
+Total failures        : 12
+Precision             : 0.90%
+Recall                : 0.99%
+Accuracy              : 0.94%
+--------------------------------------------
+--------------------------------------------
+( 4, 5 )
+Successes       : 165
+Failures        : 7
+False Positives : 6
+False Negatives : 1
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 165
+Total failures        : 7
+Precision             : 0.93%
+Recall                : 0.99%
+Accuracy              : 0.96%
+--------------------------------------------
+--------------------------------------------
+( 4, 6 )
+Successes       : 171
+Failures        : 4
+False Positives : 4
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 171
+Total failures        : 4
+Precision             : 0.95%
+Recall                : 1.0%
+Accuracy              : 0.98%
+--------------------------------------------
+--------------------------------------------
+( 4, 7 )
+Successes       : 156
+Failures        : 22
+False Positives : 22
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 156
+Total failures        : 22
+Precision             : 0.74%
+Recall                : 1.0%
+Accuracy              : 0.86%
+--------------------------------------------
+--------------------------------------------
+( 4, 8 )
+Successes       : 160
+Failures        : 12
+False Positives : 10
+False Negatives : 2
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 160
+Total failures        : 12
+Precision             : 0.88%
+Recall                : 0.97%
+Accuracy              : 0.93%
+--------------------------------------------
+--------------------------------------------
+( 4, 9 )
+Successes       : 177
+Failures        : 11
+False Positives : 8
+False Negatives : 3
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 177
+Total failures        : 11
+Precision             : 0.90%
+Recall                : 0.96%
+Accuracy              : 0.94%
+--------------------------------------------
+--------------------------------------------
+( 5, 6 )
+Successes       : 174
+Failures        : 5
+False Positives : 5
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 174
+Total failures        : 5
+Precision             : 0.94%
+Recall                : 1.0%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 5, 7 )
+Successes       : 168
+Failures        : 14
+False Positives : 14
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 168
+Total failures        : 14
+Precision             : 0.84%
+Recall                : 1.0%
+Accuracy              : 0.92%
+--------------------------------------------
+--------------------------------------------
+( 5, 8 )
+Successes       : 171
+Failures        : 5
+False Positives : 3
+False Negatives : 2
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 171
+Total failures        : 5
+Precision             : 0.97%
+Recall                : 0.98%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 5, 9 )
+Successes       : 181
+Failures        : 11
+False Positives : 10
+False Negatives : 1
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 181
+Total failures        : 11
+Precision             : 0.89%
+Recall                : 0.99%
+Accuracy              : 0.94%
+--------------------------------------------
+--------------------------------------------
+( 6, 7 )
+Successes       : 185
+Failures        : 0
+False Positives : 0
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 185
+Total failures        : 0
+Precision             : 1.0%
+Recall                : 1.0%
+Accuracy              : 1.0%
+--------------------------------------------
+--------------------------------------------
+( 6, 8 )
+Successes       : 172
+Failures        : 7
+False Positives : 0
+False Negatives : 7
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 172
+Total failures        : 7
+Precision             : 1.0%
+Recall                : 0.93%
+Accuracy              : 0.96%
+--------------------------------------------
+--------------------------------------------
+( 6, 9 )
+Successes       : 195
+Failures        : 0
+False Positives : 0
+False Negatives : 0
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 195
+Total failures        : 0
+Precision             : 1.0%
+Recall                : 1.0%
+Accuracy              : 1.0%
+--------------------------------------------
+--------------------------------------------
+( 7, 8 )
+Successes       : 156
+Failures        : 26
+False Positives : 0
+False Negatives : 26
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 156
+Total failures        : 26
+Precision             : 1.0%
+Recall                : 0.78%
+Accuracy              : 0.83%
+--------------------------------------------
+--------------------------------------------
+( 7, 9 )
+Successes       : 175
+Failures        : 23
+False Positives : 0
+False Negatives : 23
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 175
+Total failures        : 23
+Precision             : 1.0%
+Recall                : 0.80%
+Accuracy              : 0.87%
+--------------------------------------------
+--------------------------------------------
+( 8, 9 )
+Successes       : 186
+Failures        : 6
+False Positives : 3
+False Negatives : 3
+______________________________
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 186
+Total failures        : 6
+Precision             : 0.97%
+Recall                : 0.97%
+Accuracy              : 0.97%
+--------------------------------------------
+reporting test data
+--------------------------------------------
+Learning rate         : 0.2
+Training runs         : 20
+Total successes       : 16387
+Total failures        : 1019
+Precision             : 0.97%
+Recall                : 0.92%
+Accuracy              : 0.94%
+____________________________________________
+      0   1   2   3   4   5   6   7   8   9
+____________________________________________
+0 |   X  14   4   0   5   0  12   1   1   2
+
+1 |   0   X   6   0   0   0   7   2   0   0
+
+2 |   0  27   X   0   0   0   1   8   1   7
+
+3 |   0 182  36   X   2   4   2  55  16  39
+
+4 |   0 108   6   2   X   6  10  38  12  12
+
+5 |   4 129  26   8   1   X   9  26   7  34
+
+6 |   0   4   1   0   0   0   X   0   0   0
+
+7 |   0   4   0   0   0   0   0   X   0   0
+
+8 |   0 226  27   1  12   4  37  58   X  19
+
+9 |   0 155   6   1  11   3   0  53   5   X
+
+--------------------------------------------
+\end{verbatim}
+}
+
+
+\subsection{Classifier Output - Experiment 2} {
+\begin{verbatim}
+start
+reading files
+creating perceptron classifiers
+training classifiers
+reporting training data
+____________________________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 8520
+Total failures        : 480
+Precision             : 0.98%
+Recall                : 0.92%
+Accuracy              : 0.94%
+____________________________________________
+      0   1   2   3   4   5   6   7   8   9
+____________________________________________
+0 |   X   8   4   0   2   0   6   0   0   0
+
+1 |   0   X   6   0   0   0   4   0   0   0
+
+2 |   0  16   X   0   0   0   0   4   0   6
+
+3 |   0 122  28   X   2   4   2  34  12  28
+
+4 |   0  66   0   0   X   0   6  16   2   4
+
+5 |   4  82  20   6   0   X   4  12   4  24
+
+6 |   0   2   0   0   0   0   X   0   0   0
+
+7 |   0   4   0   0   0   0   0   X   0   0
+
+8 |   0 152  18   0  10   2  30  32   X  16
+
+9 |   0 110   4   0   8   2   0  30   2   X
+
+--------------------------------------------
+running classifiers
+--------------------------------------------
+( 0, 1 )
+Successes       : 180
+Failures        : 6
+False Positives : 6
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 180
+Total failures        : 6
+Precision             : 0.94%
+Recall                : 1.0%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 0, 2 )
+Successes       : 189
+Failures        : 0
+False Positives : 0
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 189
+Total failures        : 0
+Precision             : 1.0%
+Recall                : 1.0%
+Accuracy              : 1.0%
+--------------------------------------------
+--------------------------------------------
+( 0, 3 )
+Successes       : 200
+Failures        : 0
+False Positives : 0
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 200
+Total failures        : 0
+Precision             : 1.0%
+Recall                : 1.0%
+Accuracy              : 1.0%
+--------------------------------------------
+--------------------------------------------
+( 0, 4 )
+Successes       : 176
+Failures        : 3
+False Positives : 3
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 176
+Total failures        : 3
+Precision             : 0.97%
+Recall                : 1.0%
+Accuracy              : 0.98%
+--------------------------------------------
+--------------------------------------------
+( 0, 5 )
+Successes       : 183
+Failures        : 0
+False Positives : 0
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 183
+Total failures        : 0
+Precision             : 1.0%
+Recall                : 1.0%
+Accuracy              : 1.0%
+--------------------------------------------
+--------------------------------------------
+( 0, 6 )
+Successes       : 180
+Failures        : 6
+False Positives : 6
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 180
+Total failures        : 6
+Precision             : 0.94%
+Recall                : 1.0%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 0, 7 )
+Successes       : 188
+Failures        : 1
+False Positives : 1
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 188
+Total failures        : 1
+Precision             : 0.99%
+Recall                : 1.0%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 0, 8 )
+Successes       : 182
+Failures        : 1
+False Positives : 1
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 182
+Total failures        : 1
+Precision             : 0.99%
+Recall                : 1.0%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 0, 9 )
+Successes       : 197
+Failures        : 2
+False Positives : 2
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 197
+Total failures        : 2
+Precision             : 0.98%
+Recall                : 1.0%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 1, 2 )
+Successes       : 174
+Failures        : 11
+False Positives : 0
+False Negatives : 11
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 174
+Total failures        : 11
+Precision             : 1.0%
+Recall                : 0.89%
+Accuracy              : 0.94%
+--------------------------------------------
+--------------------------------------------
+( 1, 3 )
+Successes       : 136
+Failures        : 60
+False Positives : 0
+False Negatives : 60
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 136
+Total failures        : 60
+Precision             : 1.0%
+Recall                : 0.60%
+Accuracy              : 0.56%
+--------------------------------------------
+--------------------------------------------
+( 1, 4 )
+Successes       : 133
+Failures        : 42
+False Positives : 0
+False Negatives : 42
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 133
+Total failures        : 42
+Precision             : 1.0%
+Recall                : 0.68%
+Accuracy              : 0.68%
+--------------------------------------------
+--------------------------------------------
+( 1, 5 )
+Successes       : 132
+Failures        : 47
+False Positives : 0
+False Negatives : 47
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 132
+Total failures        : 47
+Precision             : 1.0%
+Recall                : 0.66%
+Accuracy              : 0.64%
+--------------------------------------------
+--------------------------------------------
+( 1, 6 )
+Successes       : 177
+Failures        : 5
+False Positives : 3
+False Negatives : 2
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 177
+Total failures        : 5
+Precision             : 0.97%
+Recall                : 0.98%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 1, 7 )
+Successes       : 183
+Failures        : 2
+False Positives : 2
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 183
+Total failures        : 2
+Precision             : 0.98%
+Recall                : 1.0%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 1, 8 )
+Successes       : 105
+Failures        : 74
+False Positives : 0
+False Negatives : 74
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 105
+Total failures        : 74
+Precision             : 1.0%
+Recall                : 0.55%
+Accuracy              : 0.30%
+--------------------------------------------
+--------------------------------------------
+( 1, 9 )
+Successes       : 150
+Failures        : 45
+False Positives : 0
+False Negatives : 45
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 150
+Total failures        : 45
+Precision             : 1.0%
+Recall                : 0.67%
+Accuracy              : 0.70%
+--------------------------------------------
+--------------------------------------------
+( 2, 3 )
+Successes       : 191
+Failures        : 8
+False Positives : 0
+False Negatives : 8
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 191
+Total failures        : 8
+Precision             : 1.0%
+Recall                : 0.92%
+Accuracy              : 0.96%
+--------------------------------------------
+--------------------------------------------
+( 2, 4 )
+Successes       : 172
+Failures        : 6
+False Positives : 0
+False Negatives : 6
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 172
+Total failures        : 6
+Precision             : 1.0%
+Recall                : 0.94%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 2, 5 )
+Successes       : 176
+Failures        : 6
+False Positives : 0
+False Negatives : 6
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 176
+Total failures        : 6
+Precision             : 1.0%
+Recall                : 0.94%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 2, 6 )
+Successes       : 183
+Failures        : 2
+False Positives : 1
+False Negatives : 1
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 183
+Total failures        : 2
+Precision             : 0.99%
+Recall                : 0.99%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 2, 7 )
+Successes       : 184
+Failures        : 4
+False Positives : 4
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 184
+Total failures        : 4
+Precision             : 0.96%
+Recall                : 1.0%
+Accuracy              : 0.98%
+--------------------------------------------
+--------------------------------------------
+( 2, 8 )
+Successes       : 172
+Failures        : 10
+False Positives : 1
+False Negatives : 9
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 172
+Total failures        : 10
+Precision             : 0.99%
+Recall                : 0.91%
+Accuracy              : 0.94%
+--------------------------------------------
+--------------------------------------------
+( 2, 9 )
+Successes       : 195
+Failures        : 3
+False Positives : 1
+False Negatives : 2
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 195
+Total failures        : 3
+Precision             : 0.99%
+Recall                : 0.98%
+Accuracy              : 0.98%
+--------------------------------------------
+--------------------------------------------
+( 3, 4 )
+Successes       : 187
+Failures        : 2
+False Positives : 0
+False Negatives : 2
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 187
+Total failures        : 2
+Precision             : 1.0%
+Recall                : 0.98%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 3, 5 )
+Successes       : 191
+Failures        : 2
+False Positives : 0
+False Negatives : 2
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 191
+Total failures        : 2
+Precision             : 1.0%
+Recall                : 0.98%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 3, 6 )
+Successes       : 196
+Failures        : 0
+False Positives : 0
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 196
+Total failures        : 0
+Precision             : 1.0%
+Recall                : 1.0%
+Accuracy              : 1.0%
+--------------------------------------------
+--------------------------------------------
+( 3, 7 )
+Successes       : 178
+Failures        : 21
+False Positives : 21
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 178
+Total failures        : 21
+Precision             : 0.80%
+Recall                : 1.0%
+Accuracy              : 0.88%
+--------------------------------------------
+--------------------------------------------
+( 3, 8 )
+Successes       : 188
+Failures        : 5
+False Positives : 4
+False Negatives : 1
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 188
+Total failures        : 5
+Precision             : 0.96%
+Recall                : 0.99%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 3, 9 )
+Successes       : 197
+Failures        : 12
+False Positives : 11
+False Negatives : 1
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 197
+Total failures        : 12
+Precision             : 0.90%
+Recall                : 0.99%
+Accuracy              : 0.94%
+--------------------------------------------
+--------------------------------------------
+( 4, 5 )
+Successes       : 165
+Failures        : 7
+False Positives : 6
+False Negatives : 1
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 165
+Total failures        : 7
+Precision             : 0.93%
+Recall                : 0.99%
+Accuracy              : 0.96%
+--------------------------------------------
+--------------------------------------------
+( 4, 6 )
+Successes       : 171
+Failures        : 4
+False Positives : 4
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 171
+Total failures        : 4
+Precision             : 0.95%
+Recall                : 1.0%
+Accuracy              : 0.98%
+--------------------------------------------
+--------------------------------------------
+( 4, 7 )
+Successes       : 156
+Failures        : 22
+False Positives : 22
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 156
+Total failures        : 22
+Precision             : 0.74%
+Recall                : 1.0%
+Accuracy              : 0.86%
+--------------------------------------------
+--------------------------------------------
+( 4, 8 )
+Successes       : 160
+Failures        : 12
+False Positives : 10
+False Negatives : 2
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 160
+Total failures        : 12
+Precision             : 0.88%
+Recall                : 0.97%
+Accuracy              : 0.93%
+--------------------------------------------
+--------------------------------------------
+( 4, 9 )
+Successes       : 177
+Failures        : 11
+False Positives : 8
+False Negatives : 3
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 177
+Total failures        : 11
+Precision             : 0.90%
+Recall                : 0.96%
+Accuracy              : 0.94%
+--------------------------------------------
+--------------------------------------------
+( 5, 6 )
+Successes       : 174
+Failures        : 5
+False Positives : 5
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 174
+Total failures        : 5
+Precision             : 0.94%
+Recall                : 1.0%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 5, 7 )
+Successes       : 168
+Failures        : 14
+False Positives : 14
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 168
+Total failures        : 14
+Precision             : 0.84%
+Recall                : 1.0%
+Accuracy              : 0.92%
+--------------------------------------------
+--------------------------------------------
+( 5, 8 )
+Successes       : 171
+Failures        : 5
+False Positives : 3
+False Negatives : 2
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 171
+Total failures        : 5
+Precision             : 0.97%
+Recall                : 0.98%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 5, 9 )
+Successes       : 181
+Failures        : 11
+False Positives : 10
+False Negatives : 1
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 181
+Total failures        : 11
+Precision             : 0.89%
+Recall                : 0.99%
+Accuracy              : 0.94%
+--------------------------------------------
+--------------------------------------------
+( 6, 7 )
+Successes       : 185
+Failures        : 0
+False Positives : 0
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 185
+Total failures        : 0
+Precision             : 1.0%
+Recall                : 1.0%
+Accuracy              : 1.0%
+--------------------------------------------
+--------------------------------------------
+( 6, 8 )
+Successes       : 172
+Failures        : 7
+False Positives : 0
+False Negatives : 7
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 172
+Total failures        : 7
+Precision             : 1.0%
+Recall                : 0.93%
+Accuracy              : 0.96%
+--------------------------------------------
+--------------------------------------------
+( 6, 9 )
+Successes       : 195
+Failures        : 0
+False Positives : 0
+False Negatives : 0
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 195
+Total failures        : 0
+Precision             : 1.0%
+Recall                : 1.0%
+Accuracy              : 1.0%
+--------------------------------------------
+--------------------------------------------
+( 7, 8 )
+Successes       : 156
+Failures        : 26
+False Positives : 0
+False Negatives : 26
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 156
+Total failures        : 26
+Precision             : 1.0%
+Recall                : 0.78%
+Accuracy              : 0.83%
+--------------------------------------------
+--------------------------------------------
+( 7, 9 )
+Successes       : 175
+Failures        : 23
+False Positives : 0
+False Negatives : 23
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 175
+Total failures        : 23
+Precision             : 1.0%
+Recall                : 0.80%
+Accuracy              : 0.87%
+--------------------------------------------
+--------------------------------------------
+( 8, 9 )
+Successes       : 186
+Failures        : 6
+False Positives : 3
+False Negatives : 3
+______________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 186
+Total failures        : 6
+Precision             : 0.97%
+Recall                : 0.97%
+Accuracy              : 0.97%
+--------------------------------------------
+reporting test data
+____________________________________________
+Learning rate         : 0.8
+Training runs         : 20
+Total successes       : 16387
+Total failures        : 1019
+Precision             : 0.97%
+Recall                : 0.92%
+Accuracy              : 0.94%
+____________________________________________
+      0   1   2   3   4   5   6   7   8   9
+____________________________________________
+0 |   X  14   4   0   5   0  12   1   1   2
+
+1 |   0   X   6   0   0   0   7   2   0   0
+
+2 |   0  27   X   0   0   0   1   8   1   7
+
+3 |   0 182  36   X   2   4   2  55  16  39
+
+4 |   0 108   6   2   X   6  10  38  12  12
+
+5 |   4 129  26   8   1   X   9  26   7  34
+
+6 |   0   4   1   0   0   0   X   0   0   0
+
+7 |   0   4   0   0   0   0   0   X   0   0
+
+8 |   0 226  27   1  12   4  37  58   X  19
+
+9 |   0 155   6   1  11   3   0  53   5   X
+
+--------------------------------------------
+\end{verbatim}
+}
+\subsection{Classifier Output - Experiment 3} {
+\begin{verbatim}
+start
+reading files
+creating perceptron classifiers
+training classifiers
+reporting training data
+____________________________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 8519
+Total failures        : 481
+Precision             : 0.98%
+Recall                : 0.92%
+Accuracy              : 0.94%
+____________________________________________
+      0   1   2   3   4   5   6   7   8   9
+____________________________________________
+0 |   X   8   4   0   2   0   6   0   0   0
+
+1 |   0   X   6   0   0   0   4   0   0   0
+
+2 |   0  16   X   0   0   0   0   4   0   6
+
+3 |   0 122  28   X   2   4   2  34  12  28
+
+4 |   0  66   0   0   X   0   6  16   2   4
+
+5 |   4  82  20   6   0   X   4  12   4  24
+
+6 |   0   2   0   0   0   0   X   0   0   0
+
+7 |   0   4   0   0   0   0   0   X   0   0
+
+8 |   0 152  18   0  10   2  30  32   X  16
+
+9 |   0 112   4   0   8   2   0  30   2   X
+
+--------------------------------------------
+running classifiers
+--------------------------------------------
+( 0, 1 )
+Successes       : 180
+Failures        : 6
+False Positives : 6
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 180
+Total failures        : 6
+Precision             : 0.94%
+Recall                : 1.0%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 0, 2 )
+Successes       : 189
+Failures        : 0
+False Positives : 0
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 189
+Total failures        : 0
+Precision             : 1.0%
+Recall                : 1.0%
+Accuracy              : 1.0%
+--------------------------------------------
+--------------------------------------------
+( 0, 3 )
+Successes       : 200
+Failures        : 0
+False Positives : 0
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 200
+Total failures        : 0
+Precision             : 1.0%
+Recall                : 1.0%
+Accuracy              : 1.0%
+--------------------------------------------
+--------------------------------------------
+( 0, 4 )
+Successes       : 176
+Failures        : 3
+False Positives : 3
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 176
+Total failures        : 3
+Precision             : 0.97%
+Recall                : 1.0%
+Accuracy              : 0.98%
+--------------------------------------------
+--------------------------------------------
+( 0, 5 )
+Successes       : 183
+Failures        : 0
+False Positives : 0
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 183
+Total failures        : 0
+Precision             : 1.0%
+Recall                : 1.0%
+Accuracy              : 1.0%
+--------------------------------------------
+--------------------------------------------
+( 0, 6 )
+Successes       : 180
+Failures        : 6
+False Positives : 6
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 180
+Total failures        : 6
+Precision             : 0.94%
+Recall                : 1.0%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 0, 7 )
+Successes       : 188
+Failures        : 1
+False Positives : 1
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 188
+Total failures        : 1
+Precision             : 0.99%
+Recall                : 1.0%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 0, 8 )
+Successes       : 182
+Failures        : 1
+False Positives : 1
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 182
+Total failures        : 1
+Precision             : 0.99%
+Recall                : 1.0%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 0, 9 )
+Successes       : 197
+Failures        : 2
+False Positives : 2
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 197
+Total failures        : 2
+Precision             : 0.98%
+Recall                : 1.0%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 1, 2 )
+Successes       : 174
+Failures        : 11
+False Positives : 0
+False Negatives : 11
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 174
+Total failures        : 11
+Precision             : 1.0%
+Recall                : 0.89%
+Accuracy              : 0.94%
+--------------------------------------------
+--------------------------------------------
+( 1, 3 )
+Successes       : 136
+Failures        : 60
+False Positives : 0
+False Negatives : 60
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 136
+Total failures        : 60
+Precision             : 1.0%
+Recall                : 0.60%
+Accuracy              : 0.56%
+--------------------------------------------
+--------------------------------------------
+( 1, 4 )
+Successes       : 133
+Failures        : 42
+False Positives : 0
+False Negatives : 42
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 133
+Total failures        : 42
+Precision             : 1.0%
+Recall                : 0.68%
+Accuracy              : 0.68%
+--------------------------------------------
+--------------------------------------------
+( 1, 5 )
+Successes       : 132
+Failures        : 47
+False Positives : 0
+False Negatives : 47
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 132
+Total failures        : 47
+Precision             : 1.0%
+Recall                : 0.66%
+Accuracy              : 0.64%
+--------------------------------------------
+--------------------------------------------
+( 1, 6 )
+Successes       : 177
+Failures        : 5
+False Positives : 3
+False Negatives : 2
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 177
+Total failures        : 5
+Precision             : 0.97%
+Recall                : 0.98%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 1, 7 )
+Successes       : 183
+Failures        : 2
+False Positives : 2
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 183
+Total failures        : 2
+Precision             : 0.98%
+Recall                : 1.0%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 1, 8 )
+Successes       : 104
+Failures        : 75
+False Positives : 0
+False Negatives : 75
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 104
+Total failures        : 75
+Precision             : 1.0%
+Recall                : 0.55%
+Accuracy              : 0.28%
+--------------------------------------------
+--------------------------------------------
+( 1, 9 )
+Successes       : 150
+Failures        : 45
+False Positives : 0
+False Negatives : 45
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 150
+Total failures        : 45
+Precision             : 1.0%
+Recall                : 0.67%
+Accuracy              : 0.70%
+--------------------------------------------
+--------------------------------------------
+( 2, 3 )
+Successes       : 191
+Failures        : 8
+False Positives : 0
+False Negatives : 8
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 191
+Total failures        : 8
+Precision             : 1.0%
+Recall                : 0.92%
+Accuracy              : 0.96%
+--------------------------------------------
+--------------------------------------------
+( 2, 4 )
+Successes       : 172
+Failures        : 6
+False Positives : 0
+False Negatives : 6
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 172
+Total failures        : 6
+Precision             : 1.0%
+Recall                : 0.94%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 2, 5 )
+Successes       : 176
+Failures        : 6
+False Positives : 0
+False Negatives : 6
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 176
+Total failures        : 6
+Precision             : 1.0%
+Recall                : 0.94%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 2, 6 )
+Successes       : 183
+Failures        : 2
+False Positives : 1
+False Negatives : 1
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 183
+Total failures        : 2
+Precision             : 0.99%
+Recall                : 0.99%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 2, 7 )
+Successes       : 184
+Failures        : 4
+False Positives : 4
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 184
+Total failures        : 4
+Precision             : 0.96%
+Recall                : 1.0%
+Accuracy              : 0.98%
+--------------------------------------------
+--------------------------------------------
+( 2, 8 )
+Successes       : 172
+Failures        : 10
+False Positives : 1
+False Negatives : 9
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 172
+Total failures        : 10
+Precision             : 0.99%
+Recall                : 0.91%
+Accuracy              : 0.94%
+--------------------------------------------
+--------------------------------------------
+( 2, 9 )
+Successes       : 195
+Failures        : 3
+False Positives : 1
+False Negatives : 2
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 195
+Total failures        : 3
+Precision             : 0.99%
+Recall                : 0.98%
+Accuracy              : 0.98%
+--------------------------------------------
+--------------------------------------------
+( 3, 4 )
+Successes       : 187
+Failures        : 2
+False Positives : 0
+False Negatives : 2
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 187
+Total failures        : 2
+Precision             : 1.0%
+Recall                : 0.98%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 3, 5 )
+Successes       : 191
+Failures        : 2
+False Positives : 0
+False Negatives : 2
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 191
+Total failures        : 2
+Precision             : 1.0%
+Recall                : 0.98%
+Accuracy              : 0.99%
+--------------------------------------------
+--------------------------------------------
+( 3, 6 )
+Successes       : 196
+Failures        : 0
+False Positives : 0
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 196
+Total failures        : 0
+Precision             : 1.0%
+Recall                : 1.0%
+Accuracy              : 1.0%
+--------------------------------------------
+--------------------------------------------
+( 3, 7 )
+Successes       : 178
+Failures        : 21
+False Positives : 21
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 178
+Total failures        : 21
+Precision             : 0.80%
+Recall                : 1.0%
+Accuracy              : 0.88%
+--------------------------------------------
+--------------------------------------------
+( 3, 8 )
+Successes       : 188
+Failures        : 5
+False Positives : 4
+False Negatives : 1
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 188
+Total failures        : 5
+Precision             : 0.96%
+Recall                : 0.99%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 3, 9 )
+Successes       : 197
+Failures        : 12
+False Positives : 11
+False Negatives : 1
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 197
+Total failures        : 12
+Precision             : 0.90%
+Recall                : 0.99%
+Accuracy              : 0.94%
+--------------------------------------------
+--------------------------------------------
+( 4, 5 )
+Successes       : 165
+Failures        : 7
+False Positives : 6
+False Negatives : 1
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 165
+Total failures        : 7
+Precision             : 0.93%
+Recall                : 0.99%
+Accuracy              : 0.96%
+--------------------------------------------
+--------------------------------------------
+( 4, 6 )
+Successes       : 171
+Failures        : 4
+False Positives : 4
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 171
+Total failures        : 4
+Precision             : 0.95%
+Recall                : 1.0%
+Accuracy              : 0.98%
+--------------------------------------------
+--------------------------------------------
+( 4, 7 )
+Successes       : 156
+Failures        : 22
+False Positives : 22
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 156
+Total failures        : 22
+Precision             : 0.74%
+Recall                : 1.0%
+Accuracy              : 0.86%
+--------------------------------------------
+--------------------------------------------
+( 4, 8 )
+Successes       : 160
+Failures        : 12
+False Positives : 10
+False Negatives : 2
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 160
+Total failures        : 12
+Precision             : 0.88%
+Recall                : 0.97%
+Accuracy              : 0.93%
+--------------------------------------------
+--------------------------------------------
+( 4, 9 )
+Successes       : 177
+Failures        : 11
+False Positives : 8
+False Negatives : 3
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 177
+Total failures        : 11
+Precision             : 0.90%
+Recall                : 0.96%
+Accuracy              : 0.94%
+--------------------------------------------
+--------------------------------------------
+( 5, 6 )
+Successes       : 174
+Failures        : 5
+False Positives : 5
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 174
+Total failures        : 5
+Precision             : 0.94%
+Recall                : 1.0%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 5, 7 )
+Successes       : 168
+Failures        : 14
+False Positives : 14
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 168
+Total failures        : 14
+Precision             : 0.84%
+Recall                : 1.0%
+Accuracy              : 0.92%
+--------------------------------------------
+--------------------------------------------
+( 5, 8 )
+Successes       : 171
+Failures        : 5
+False Positives : 3
+False Negatives : 2
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 171
+Total failures        : 5
+Precision             : 0.97%
+Recall                : 0.98%
+Accuracy              : 0.97%
+--------------------------------------------
+--------------------------------------------
+( 5, 9 )
+Successes       : 181
+Failures        : 11
+False Positives : 10
+False Negatives : 1
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 181
+Total failures        : 11
+Precision             : 0.89%
+Recall                : 0.99%
+Accuracy              : 0.94%
+--------------------------------------------
+--------------------------------------------
+( 6, 7 )
+Successes       : 185
+Failures        : 0
+False Positives : 0
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 185
+Total failures        : 0
+Precision             : 1.0%
+Recall                : 1.0%
+Accuracy              : 1.0%
+--------------------------------------------
+--------------------------------------------
+( 6, 8 )
+Successes       : 172
+Failures        : 7
+False Positives : 0
+False Negatives : 7
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 172
+Total failures        : 7
+Precision             : 1.0%
+Recall                : 0.93%
+Accuracy              : 0.96%
+--------------------------------------------
+--------------------------------------------
+( 6, 9 )
+Successes       : 195
+Failures        : 0
+False Positives : 0
+False Negatives : 0
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 195
+Total failures        : 0
+Precision             : 1.0%
+Recall                : 1.0%
+Accuracy              : 1.0%
+--------------------------------------------
+--------------------------------------------
+( 7, 8 )
+Successes       : 156
+Failures        : 26
+False Positives : 0
+False Negatives : 26
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 156
+Total failures        : 26
+Precision             : 1.0%
+Recall                : 0.78%
+Accuracy              : 0.83%
+--------------------------------------------
+--------------------------------------------
+( 7, 9 )
+Successes       : 175
+Failures        : 23
+False Positives : 0
+False Negatives : 23
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 175
+Total failures        : 23
+Precision             : 1.0%
+Recall                : 0.80%
+Accuracy              : 0.87%
+--------------------------------------------
+--------------------------------------------
+( 8, 9 )
+Successes       : 186
+Failures        : 6
+False Positives : 3
+False Negatives : 3
+______________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 186
+Total failures        : 6
+Precision             : 0.97%
+Recall                : 0.97%
+Accuracy              : 0.97%
+--------------------------------------------
+reporting test data
+____________________________________________
+Learning rate         : 0.05
+Training runs         : 20
+Total successes       : 16385
+Total failures        : 1021
+Precision             : 0.97%
+Recall                : 0.92%
+Accuracy              : 0.94%
+____________________________________________
+      0   1   2   3   4   5   6   7   8   9
+____________________________________________
+0 |   X  14   4   0   5   0  12   1   1   2
+
+1 |   0   X   6   0   0   0   7   2   0   0
+
+2 |   0  27   X   0   0   0   1   8   1   7
+
+3 |   0 182  36   X   2   4   2  55  16  39
+
+4 |   0 108   6   2   X   6  10  38  12  12
+
+5 |   4 129  26   8   1   X   9  26   7  34
+
+6 |   0   4   1   0   0   0   X   0   0   0
+
+7 |   0   4   0   0   0   0   0   X   0   0
+
+8 |   0 227  27   1  12   4  37  58   X  19
+
+9 |   0 157   6   1  11   3   0  53   5   X
+
+--------------------------------------------
+\end{verbatim}
+}
+\end{document}

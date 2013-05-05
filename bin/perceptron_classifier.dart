@@ -11,32 +11,65 @@ import 'dart:math';
  * 4.) report results
  */
 void main() {
+  /** 
+   * Adjustments
+   * 
+   * Adjust these variables in order to 
+   * tweak the training algorithm. I saw
+   * very little difference between learning
+   * rates 0.2, 0.8 and 0.05. I also detected
+   * little variation between setting the 
+   * number of training runs to 1, 10, 20, 50, 
+   * 100 and 1000. YMMV.
+   */
+  // Number of runs to make during training
+  int runs = 1000;
+  // Also known as Ada
+  double learningRate = 0.8;
+  
   // Start
   print("start");
   print("reading files");
+  
   // ** Data
   Path trainingDataPath = new Path(r'bin/optdigits.train');
   Path testDataPath = new Path(r'bin/optdigits.test');
   var trainingDataFile = new File.fromPath(trainingDataPath);
   var testDataFile = new File.fromPath(testDataPath);
+  
   // Read training data file to list of Strings
   List<String> trainingData;
   List<String> testData;
   trainingData = trainingDataFile.readAsLinesSync();
   testData     = testDataFile.readAsLinesSync();
   
-  print("creating perceptron classifiers");
+  // Confusion Matrix
+  List<List<int>> confusionMatrix = new List<List<int>>();
+  int i = 0;
+  int j = 0;
+  for (i=0;i<10;++i) {
+    confusionMatrix.add(new List<int>());
+    for (j=0;j<10;++j) {
+      confusionMatrix[i].add(0);
+    }
+  }
+  
   // ** Create Perceptron Classifiers
+  print("creating perceptron classifiers");
   List<pClassifier> pc = new List<pClassifier>();
   // Create all 45 Classifier combinations
-  int i,j =0;
-  double learningRate = 0.2;
+  i=0;
+  j=0;
   List<bool> unmarked = new List.filled(10, false);
   for (i=0; i<10; ++i) {
     unmarked[i] = true;
     for (j=1; j<10; ++j) {
       if (!unmarked[j]) {
-        pc.add(new pClassifier( trainingData, testData, i, j, learningRate));
+        pc.add(new pClassifier( trainingData, 
+                                testData, 
+                                i, j, 
+                                learningRate, 
+                                confusionMatrix));
       }
     }
   }
@@ -51,8 +84,9 @@ void main() {
   print("training classifiers");
   for (final classifier in pc) {
     // Train the classifier
-    classifier.train();
-    // classifier.report();        
+    classifier.train(runs);
+    // Report findings
+    classifier.report();        
     // Get stats
     totalFailures  += classifier.failures;
     totalSuccesses += classifier.successes;
@@ -67,14 +101,17 @@ void main() {
               totalFP, 
               totalFN, 
               totalTP, 
-              totalTN);
+              totalTN,
+              learningRate,
+              confusionMatrix,
+              runs);
   
   print("running classifiers");
   for (final classifier in pc) {
     // Run the classifier on test data
     classifier.test();
     // Report findings
-    // classifier.report();        
+    classifier.report();        
     // Get stats
     totalFailures  += classifier.failures;
     totalSuccesses += classifier.successes;
@@ -90,24 +127,61 @@ void main() {
               totalFP, 
               totalFN, 
               totalTP, 
-              totalTN);
+              totalTN,
+              learningRate,
+              confusionMatrix,
+              runs);
 }
 
 /** 
  * Main reporting function
  */
-finalReport(int failures, int successes, int FP, int FN, int TP, int TN) {
+finalReport(int failures, int successes, 
+            int FP, int FN, int TP, int TN,
+            double learningRate,
+            List<List<int>> confusionMatrix,
+            int runs) {
   double precision = TP / (TP + FP);
   double recall    = TP / (TP + FN);
-  double accuracy  = 
-  print("----------------------------------");
+  double accuracy  = (1.0 - (failures / successes));
+  print("____________________________________________");
+  print("Learning rate         : " + learningRate.toString());
+  print("Training runs         : " + runs.toString());
   print("Total successes       : " + successes.toString());
   print("Total failures        : " + failures.toString());
   print("Precision             : " + precision.toStringAsPrecision(2) + "%");  
-  print("Recall                : " + recall.toStringAsPrecision(2) + "%");
-  print("Accuracy              : " + (1.0 - (failures / successes)).toStringAsPrecision(2) + "%");
-  print("----------------------------------");
-
+  print("Recall                : " + recall.toStringAsPrecision(2)    + "%");
+  print("Accuracy              : " + accuracy.toStringAsPrecision(2)  + "%");
+  print("____________________________________________");
+  // Print confusion matrix
+  int i=0;
+  int j=0;
+  String line;
+  String digits;
+  print("      0   1   2   3   4   5   6   7   8   9");
+  print("____________________________________________");
+  for (i=0;i<10;++i) {
+    line = "";
+    for (j=0;j<10;++j) {
+      if (j == 0) {
+        line = line + i.toString() + " |";
+      }
+      if (i == j) {
+        digits = "X";
+      } else {        
+        digits = confusionMatrix[i][j].toString();
+      }
+      int l = digits.length;
+      int k=0;
+      // Table Alignment
+      for (k=0;k<(4-l);++k) {
+        line = line + " ";
+      }
+      line = line + digits;
+    }
+    print(line + "\n");
+  }
+  print("--------------------------------------------");
 }
 
 /**
@@ -122,7 +196,7 @@ class pClassifier {
   int _classA;
   int _classB;
   // Learning Rate
-  double Ada = 0.2;
+  double Ada = 0.0;
   // Weights
   List <double> _weights;
   // Classes
@@ -139,10 +213,9 @@ class pClassifier {
   // Output from classification test run
   double _output = 0.0;
   List<int> _output_data;
+  // Confusion Matrix
+  List<List<int>> _confusionMatrix;
   // K is the current epoch; 
-  // The number of times the classifier has been run.
-  // We assume that this number is smaller than the 
-  // maximum size of int. (Perhaps a bad assumption...)
   int _k=0;
   // State
   bool _hasRun    = false;
@@ -153,6 +226,7 @@ class pClassifier {
   int  _FN        = 0;
   int  _TP        = 0;
   int  _TN        = 0;
+  int  _runs      = 0;
   // Random seed
   var _rand = new Random();
 
@@ -169,12 +243,15 @@ class pClassifier {
               List<String> testData,
               int a, 
               int b,
-              double learningRate) {
+              double learningRate,
+              List<List<int>> confusionMatrix) {
     // Classes to train for
     _classA = a;
     _classB = b;
     // Learning rate
     Ada = learningRate;
+    // Confusion matrix
+    _confusionMatrix = confusionMatrix;
     // Initial weights
     _weights = new List<double>();
     // Set to random values
@@ -280,8 +357,7 @@ class pClassifier {
   
   /** 
    * Wrapper for output function - 
-   * Run the Perceptron to get output "o"
-   * from training data
+   * Evaluate training data
    */
   trainingRun(List<String> trainingData) {
     int i=0;
@@ -307,7 +383,9 @@ class pClassifier {
    * Training function -
    * Train the classifier (one epoch)
    */
-  train() {
+  train(int runs) {
+    // Just for tracking purposes
+    _runs = runs;
     // Create subset of complete data which
     // includes only the two useful classes 
     List<String> subsetData  = new List<String>();
@@ -327,8 +405,8 @@ class pClassifier {
     }
     // Train, using Stochastic Gradient Descent
     int n=0;
-    const maxRuns = 1;
-    for (n=0;n<maxRuns;++n) {
+//    const maxRuns = 100;
+    for (n=0;n<runs;++n) {
       // Iterate over each training case
       _k = 0;
       int currentSuccess = 0;
@@ -399,19 +477,21 @@ class pClassifier {
   }
   
   /**
-   * Tabulate statistics for use in training
-   * as well as in reporting
+   * Tabulate statistics for use in training.
+   * as well as in reporting, this includes
+   * success vs failure, positives vs negatives
+   * as well as the creation of the confusion
+   * matrix.
    */
   tabulate() {
     List<int> classes;
-    
     if (_hasTested) {
       classes = _trainingSubsetClasses;  
     }
     if (_hasRun) {
       classes = _testSubsetClasses;
     }
-    if (_hasRun 
+    if (_hasRun
      || _hasTested ) {
       int i=0;
       _successes =0;
@@ -432,8 +512,12 @@ class pClassifier {
         } else {
           ++_failures;
           if (cls == _classA) {
+            // Add to confusion Matrix
+            ++_confusionMatrix[_classA][_classB];
             ++_FP;
           } else {
+            // Add to confusion Matrix
+            ++_confusionMatrix[_classB][_classA];
             ++_FN;
           }
         }
@@ -441,22 +525,33 @@ class pClassifier {
       }
     }
   }
-  
+
   /**
-   * Report state to the user after a test run
+   * Perceptron reporting function
    */
   report() {
     if (_hasRun) {
-      int i=0;
-      print("-----------------");
+      print("--------------------------------------------");
       print("( " + _classA.toString() + ", " + _classB.toString() + " )");
       print("Successes       : " + _successes.toString());
       print("Failures        : " + _failures.toString());
       print("False Positives : " + _FP.toString());
       print("False Negatives : " + _FN.toString());
       //print(_weights);
+      double precision = _TP / (_TP + _FP);
+      double recall    = _TP / (_TP + _FN);
+      double accuracy  = (1.0 - (_failures / _successes));
+      print("______________________________");
+      print("Learning rate         : " + Ada.toString());
+      print("Training runs         : " + _runs.toString());
+      print("Total successes       : " + successes.toString());
+      print("Total failures        : " + failures.toString());
+      print("Precision             : " + precision.toStringAsPrecision(2) + "%");  
+      print("Recall                : " + recall.toStringAsPrecision(2)    + "%");
+      print("Accuracy              : " + accuracy.toStringAsPrecision(2)  + "%");
+      print("--------------------------------------------");
     } else {
-      print('Nothing to report. Please run the classifier before reporting.');
+      //print('Nothing to report. Please run the classifier before reporting.');
     }
   }
 }
